@@ -1,0 +1,806 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Team 14 BudgetBot serverless infrastructure for W7 Capstone.
+
+Parameters:
+  ResourceNamePrefix:
+    Type: String
+    Default: team14-budgetbot-cfn
+    Description: Prefix for named resources. Keep unique if CLI-created resources already exist.
+    AllowedPattern: "^[a-z][a-z0-9-]{2,32}$"
+  OwnerTag:
+    Type: String
+    Default: Team14
+    Description: Owner tag value for all resources.
+  EnvironmentTag:
+    Type: String
+    Default: hackathon
+    AllowedValues:
+      - hackathon
+      - dev
+      - test
+      - prod
+  DeployApplication:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: Set true after uploading a Lambda zip artifact to S3.
+  LambdaCodeS3Bucket:
+    Type: String
+    Default: ""
+    Description: S3 bucket containing Lambda zip artifact. Required when DeployApplication=true.
+  LambdaCodeS3Key:
+    Type: String
+    Default: ""
+    Description: S3 key for Lambda zip artifact. Required when DeployApplication=true.
+  BedrockModelArn:
+    Type: String
+    Default: arn:aws:bedrock:ap-southeast-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0
+    Description: Foundation model ARN allowed for BudgetBot Lambda.
+
+Conditions:
+  ShouldDeployApplication: !Equals [!Ref DeployApplication, "true"]
+
+Resources:
+  BudgetBotVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-vpc
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-igw
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  VpcGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref BudgetBotVpc
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BudgetBotVpc
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-public-a
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BudgetBotVpc
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      CidrBlock: 10.0.101.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-public-b
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BudgetBotVpc
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-private-a
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BudgetBotVpc
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      CidrBlock: 10.0.102.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-private-b
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref BudgetBotVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-public-rt
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VpcGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref BudgetBotVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-private-rt
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  PrivateSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB
+      RouteTableId: !Ref PrivateRouteTable
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: BudgetBot Lambda outbound HTTPS access through private routes and VPC endpoints.
+      VpcId: !Ref BudgetBotVpc
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS only; private route table has no NAT or internet default route.
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-lambda-sg
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  EndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: HTTPS ingress from Lambda security group to interface endpoints.
+      VpcId: !Ref BudgetBotVpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+          Description: Lambda HTTPS access to interface endpoints.
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-endpoint-sg
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Gateway
+      VpcId: !Ref BudgetBotVpc
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      RouteTableIds:
+        - !Ref PrivateRouteTable
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-s3-gateway-endpoint
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  DynamoDbGatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Gateway
+      VpcId: !Ref BudgetBotVpc
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.dynamodb
+      RouteTableIds:
+        - !Ref PrivateRouteTable
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-dynamodb-gateway-endpoint
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  BedrockRuntimeEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      VpcId: !Ref BudgetBotVpc
+      PrivateDnsEnabled: true
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.bedrock-runtime
+      SubnetIds:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+      SecurityGroupIds:
+        - !Ref EndpointSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-bedrock-runtime-endpoint
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  CloudWatchMonitoringEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      VpcId: !Ref BudgetBotVpc
+      PrivateDnsEnabled: true
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.monitoring
+      SubnetIds:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+      SecurityGroupIds:
+        - !Ref EndpointSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${ResourceNamePrefix}-cloudwatch-monitoring-endpoint
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub ${ResourceNamePrefix}-frontend-${AWS::AccountId}-${AWS::Region}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  RawStatementsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub ${ResourceNamePrefix}-raw-${AWS::AccountId}-${AWS::Region}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  FrontendOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub ${ResourceNamePrefix}-frontend-oac
+        Description: CloudFront OAC for private BudgetBot frontend bucket.
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Team 14 BudgetBot static frontend.
+        DefaultRootObject: index.html
+        Origins:
+          - Id: FrontendS3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt FrontendOriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: FrontendS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        PriceClass: PriceClass_100
+        HttpVersion: http2
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub ${FrontendBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}
+
+  TransactionsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: !Sub ${ResourceNamePrefix}-transactions
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ResourceNamePrefix}-lambda-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: BudgetBotLambdaLeastPrivilegePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: RawStatementBucketObjectAccess
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub ${RawStatementsBucket.Arn}/*
+              - Sid: RawStatementBucketListAccess
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !GetAtt RawStatementsBucket.Arn
+              - Sid: BudgetBotTransactionsAccess
+                Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt TransactionsTable.Arn
+              - Sid: InvokeSelectedBedrockModel
+                Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: !Ref BedrockModelArn
+              - Sid: WriteLambdaLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Sid: WriteLambdaLogStreams
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ResourceNamePrefix}*:*
+              - Sid: PublishBudgetBotCustomMetrics
+                Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    cloudwatch:namespace: BudgetBot/Team14
+              - Sid: LambdaVpcNetworkInterfaceAccess
+                Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeSubnets
+                  - ec2:DeleteNetworkInterface
+                  - ec2:AssignPrivateIpAddresses
+                  - ec2:UnassignPrivateIpAddresses
+                Resource: "*"
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  BudgetBotFunction:
+    Type: AWS::Lambda::Function
+    Condition: ShouldDeployApplication
+    Properties:
+      FunctionName: !Sub ${ResourceNamePrefix}-backend
+      Runtime: python3.12
+      Handler: app.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 512
+      Code:
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref LambdaCodeS3Key
+      Environment:
+        Variables:
+          APP_NAME: BudgetBot
+          AWS_REGION: !Ref AWS::Region
+          AI_BACKEND: bedrock
+          STORAGE_BACKEND: s3
+          USERSTORE_BACKEND: dynamodb
+          S3_BUCKET: !Ref RawStatementsBucket
+          DDB_TABLE: !Ref TransactionsTable
+          BEDROCK_MODEL_ID: anthropic.claude-3-haiku-20240307-v1:0
+          CLOUDWATCH_NAMESPACE: BudgetBot/Team14
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnetA
+          - !Ref PrivateSubnetB
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  BudgetBotLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: ShouldDeployApplication
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ResourceNamePrefix}-backend
+      RetentionInDays: 7
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  BudgetBotApi:
+    Type: AWS::ApiGatewayV2::Api
+    Condition: ShouldDeployApplication
+    Properties:
+      Name: !Sub ${ResourceNamePrefix}-http-api
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - "*"
+      Tags:
+        Project: W7Capstone
+        Team: G14
+        Owner: !Ref OwnerTag
+        Environment: !Ref EnvironmentTag
+
+  BudgetBotIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Condition: ShouldDeployApplication
+    Properties:
+      ApiId: !Ref BudgetBotApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt BudgetBotFunction.Arn
+      PayloadFormatVersion: "2.0"
+
+  BudgetBotRouteUpload:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: ShouldDeployApplication
+    Properties:
+      ApiId: !Ref BudgetBotApi
+      RouteKey: POST /upload
+      Target: !Sub integrations/${BudgetBotIntegration}
+
+  BudgetBotRouteSummary:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: ShouldDeployApplication
+    Properties:
+      ApiId: !Ref BudgetBotApi
+      RouteKey: GET /summary
+      Target: !Sub integrations/${BudgetBotIntegration}
+
+  BudgetBotRouteTransactions:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: ShouldDeployApplication
+    Properties:
+      ApiId: !Ref BudgetBotApi
+      RouteKey: GET /transactions
+      Target: !Sub integrations/${BudgetBotIntegration}
+
+  BudgetBotRouteHealth:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: ShouldDeployApplication
+    Properties:
+      ApiId: !Ref BudgetBotApi
+      RouteKey: GET /health
+      Target: !Sub integrations/${BudgetBotIntegration}
+
+  BudgetBotStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Condition: ShouldDeployApplication
+    Properties:
+      ApiId: !Ref BudgetBotApi
+      StageName: $default
+      AutoDeploy: true
+      Tags:
+        Project: W7Capstone
+        Team: G14
+        Owner: !Ref OwnerTag
+        Environment: !Ref EnvironmentTag
+
+  BudgetBotLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Condition: ShouldDeployApplication
+    Properties:
+      FunctionName: !Ref BudgetBotFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BudgetBotApi}/*/*/*
+
+  LowConfidenceAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${ResourceNamePrefix}-low-confidence-transactions
+      AlarmDescription: Alarm when BudgetBot sees low-confidence AI classifications.
+      Namespace: BudgetBot/Team14
+      MetricName: LowConfidenceTransactions
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Tags:
+        - Key: Project
+          Value: W7Capstone
+        - Key: Team
+          Value: G14
+        - Key: Owner
+          Value: !Ref OwnerTag
+        - Key: Environment
+          Value: !Ref EnvironmentTag
+
+  BudgetBotDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub ${ResourceNamePrefix}-observability
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "region": "${AWS::Region}",
+                "title": "BudgetBot Demo Path Metrics",
+                "metrics": [
+                  [ "BudgetBot/Team14", "UploadSucceeded" ],
+                  [ ".", "TransactionsCategorized" ],
+                  [ ".", "LowConfidenceTransactions" ],
+                  [ ".", "BedrockLatencyMs" ]
+                ],
+                "stat": "Sum",
+                "period": 300
+              }
+            }
+          ]
+        }
+
+Outputs:
+  FrontendBucketName:
+    Description: Private S3 bucket for static frontend artifacts.
+    Value: !Ref FrontendBucket
+  RawStatementsBucketName:
+    Description: Private S3 bucket for uploaded bank statements.
+    Value: !Ref RawStatementsBucket
+  DynamoDbTableName:
+    Description: DynamoDB transaction table name.
+    Value: !Ref TransactionsTable
+  LambdaExecutionRoleArn:
+    Description: Least-privilege Lambda execution role ARN.
+    Value: !GetAtt LambdaExecutionRole.Arn
+  CloudFrontDomainName:
+    Description: Public HTTPS CloudFront domain for the frontend.
+    Value: !GetAtt FrontendDistribution.DomainName
+  ApiEndpoint:
+    Condition: ShouldDeployApplication
+    Description: API Gateway HTTP API endpoint.
+    Value: !GetAtt BudgetBotApi.ApiEndpoint
