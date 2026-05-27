@@ -1,5 +1,6 @@
 """Endpoint business logic for BudgetBot."""
 import csv
+import hashlib
 import io
 import logging
 from typing import Optional
@@ -52,10 +53,20 @@ def handle_upload(
     rows = _parse_csv(data)
     inserted = 0
     samples = []
-    for row in rows:
-        cat_result = ai_client.categorize(
-            description=row["description"], amount=row["amount"], date=row["date"]
-        )
+    classify_rows = []
+    for i, row in enumerate(rows):
+        row_id = hashlib.sha1(
+            f"{filename}|{i}|{row['date']}|{row['description']}|{row['amount']}".encode("utf-8")
+        ).hexdigest()[:12]
+        classify_rows.append({"row_id": row_id, **row})
+    if hasattr(ai_client, "categorize_many"):
+        category_results = ai_client.categorize_many(classify_rows)
+    else:
+        category_results = [
+            ai_client.categorize(description=row["description"], amount=row["amount"], date=row["date"])
+            for row in classify_rows
+        ]
+    for row, cat_result in zip(classify_rows, category_results):
         logger.warning(
             "bedrock_classification_result user_id=%s category=%s confidence=%s",
             user_id,
@@ -68,6 +79,8 @@ def handle_upload(
             "amount": row["amount"],
             "category": cat_result["category"],
             "confidence": cat_result["confidence"],
+            "source_file": filename,
+            "txn_id": row["row_id"],
         }
         userstore.add_transaction(user_id, txn)
         inserted += 1

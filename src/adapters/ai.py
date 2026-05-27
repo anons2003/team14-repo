@@ -25,6 +25,16 @@ Respond with JSON only. No explanation.
 {{"category": "<category>", "confidence": "high|medium|low"}}"""
 
 
+BATCH_CATEGORIZE_PROMPT = """Categorize each bank transaction into exactly one category.
+Categories: {categories}
+
+Transactions JSON:
+{transactions}
+
+Respond with JSON only. No explanation.
+{{"items":[{{"row_id":"<same row_id>","category":"<category>","confidence":"high|medium|low"}}]}}"""
+
+
 def _parse_json_response(text: str) -> dict:
     """Extract first JSON object from LLM response. Falls back to Other if invalid."""
     text = text.strip()
@@ -45,29 +55,36 @@ def _parse_json_response(text: str) -> dict:
     return {"category": "Other", "confidence": "low"}
 
 
+def _extract_json(text: str) -> Any:
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\n?|```$", "", text, flags=re.MULTILINE).strip()
+    match = re.search(r"(\{.*\}|\[.*\])", text, re.DOTALL)
+    if not match:
+        return {}
+    try:
+        return json.loads(match.group())
+    except json.JSONDecodeError:
+        return {}
+
+
 class BedrockAI:
     def __init__(self, region: str, model_id: str):
         import boto3
         self.runtime = boto3.client("bedrock-runtime", region_name=region)
         self.model_id = model_id
 
-    def categorize(self, description: str, amount: float, date: str) -> dict:
-        prompt = CATEGORIZE_PROMPT.format(
-            categories=", ".join(CATEGORIES),
-            description=description,
-            amount=amount,
-            date=date,
-        )
+    def _invoke_text(self, prompt: str) -> str:
         if "nova" in self.model_id:
             body = {
                 "schemaVersion": "messages-v1",
                 "messages": [{"role": "user", "content": [{"text": prompt}]}],
-                "inferenceConfig": {"maxTokens": 100, "temperature": 0.0},
+                "inferenceConfig": {"maxTokens": 2500, "temperature": 0.0},
             }
         else:
             body = {
                 "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": 100,
+                "max_tokens": 2500,
                 "temperature": 0.0,
                 "messages": [{"role": "user", "content": [{"type": "text", "text": prompt}]}],
             }
@@ -79,10 +96,60 @@ class BedrockAI:
         )
         payload = json.loads(resp["body"].read())
         if "nova" in self.model_id:
-            text = payload["output"]["message"]["content"][0]["text"]
-        else:
-            text = payload["content"][0]["text"]
+            return payload["output"]["message"]["content"][0]["text"]
+        return payload["content"][0]["text"]
+
+    def categorize(self, description: str, amount: float, date: str) -> dict:
+        prompt = CATEGORIZE_PROMPT.format(
+            categories=", ".join(CATEGORIES),
+            description=description,
+            amount=amount,
+            date=date,
+        )
+        text = self._invoke_text(prompt)
         return _parse_json_response(text)
+
+    def categorize_many(self, rows: list[dict]) -> list[dict]:
+        if not rows:
+            return []
+        by_id = self._categorize_batch(rows)
+
+        missing = [row for row in rows if str(row.get("row_id")) not in by_id]
+        for i in range(0, len(missing), 20):
+            by_id.update(self._categorize_batch(missing[i:i + 20]))
+
+        local_fallback = LocalAI()
+        return [
+            by_id.get(
+                str(row.get("row_id")),
+                local_fallback.categorize(
+                    description=row["description"],
+                    amount=row["amount"],
+                    date=row["date"],
+                ),
+            )
+            for row in rows
+        ]
+
+    def _categorize_batch(self, rows: list[dict]) -> dict[str, dict]:
+        prompt = BATCH_CATEGORIZE_PROMPT.format(
+            categories=", ".join(CATEGORIES),
+            transactions=json.dumps(rows, ensure_ascii=False),
+        )
+        payload = _extract_json(self._invoke_text(prompt))
+        by_id: dict[str, dict] = {}
+        items = payload if isinstance(payload, list) else payload.get("items", [])
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            category = item.get("category")
+            if category not in CATEGORIES:
+                category = "Other"
+            by_id[str(item.get("row_id"))] = {
+                "category": category,
+                "confidence": item.get("confidence", "medium"),
+            }
+        return by_id
 
 
 class LocalAI:
@@ -118,3 +185,13 @@ class LocalAI:
         except (TypeError, ValueError):
             pass
         return {"category": "Other", "confidence": "low"}
+
+    def categorize_many(self, rows: list[dict]) -> list[dict]:
+        return [
+            self.categorize(
+                description=row["description"],
+                amount=row["amount"],
+                date=row["date"],
+            )
+            for row in rows
+        ]

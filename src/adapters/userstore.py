@@ -6,6 +6,7 @@ Interface:
     summary(user_id, month=None) -> {category: {"total": float, "count": int}}
 """
 import json
+import hashlib
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,9 +26,11 @@ class DynamoDBUserStore:
         self.table = boto3.resource("dynamodb", region_name=region).Table(table_name)
 
     def add_transaction(self, user_id: str, txn: dict) -> None:
-        import uuid
         from decimal import Decimal
-        sk = f"TXN#{txn['date']}#{uuid.uuid4().hex[:8]}"
+        stable_id = txn.get("txn_id") or hashlib.sha1(
+            f"{txn.get('source_file', '')}|{txn['date']}|{txn['description']}|{txn['amount']}".encode("utf-8")
+        ).hexdigest()[:12]
+        sk = f"TXN#{txn['date']}#{stable_id}"
         # DynamoDB doesn't accept floats; use Decimal
         item = {**txn, "amount": Decimal(str(txn["amount"]))} if "amount" in txn else txn
         self.table.put_item(Item={"user_id": user_id, "sk": sk, "created_at": _now(), **item})
@@ -137,6 +140,13 @@ class SQLiteUserStore:
         self.conn.commit()
 
     def add_transaction(self, user_id: str, txn: dict) -> None:
+        txn_id = txn.get("txn_id") or hashlib.sha1(
+            f"{txn.get('source_file', '')}|{txn['date']}|{txn['description']}|{txn['amount']}".encode("utf-8")
+        ).hexdigest()[:12]
+        self.conn.execute(
+            "DELETE FROM transactions WHERE user_id = ? AND description = ? AND txn_date = ? AND amount = ?",
+            (user_id, txn["description"], txn["date"], float(txn["amount"])),
+        )
         self.conn.execute(
             "INSERT INTO transactions (user_id, txn_date, description, amount, category, confidence) "
             "VALUES (?, ?, ?, ?, ?, ?)",
