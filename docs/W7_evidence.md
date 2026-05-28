@@ -91,6 +91,7 @@ Team 14 selected **Optional #8 — Full Observability**.
 | B. CI/CD pipeline | `.github/workflows/build-and-deploy.yml`; latest runs succeeded on `main` |
 | C. Custom domain + HTTPS | Route 53 `budgetbot.topjob.id.vn`, ACM certificate in `us-east-1`, CloudFront alias |
 | E. IaC full coverage | `infrastructure/cloudformation.yaml` creates VPC, endpoints, S3, CloudFront, DynamoDB, IAM, Lambda, API Gateway, CloudWatch dashboard/alarm/query |
+| F. AI Safety Mechanism | `src/adapters/safety.py` implements prompt injection, SQL injection, and template injection guards. UI Section 7 provides a live testing endpoint. Blocked inputs are persisted and tracked in `GET /stats`. |
 | H. Cost under $30 | Pending final Cost Explorer screenshot and clean teardown confirmation |
 
 ### Key Service Decisions
