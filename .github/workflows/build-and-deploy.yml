@@ -18,6 +18,8 @@ env:
   LAMBDA_ARTIFACT_BUCKET: ${{ secrets.LAMBDA_ARTIFACT_BUCKET }}
   LAMBDA_ARTIFACT_PREFIX: ${{ vars.LAMBDA_ARTIFACT_PREFIX || 'lambda-artifacts' }}
   BEDROCK_MODEL_ARN: ${{ vars.BEDROCK_MODEL_ARN || 'arn:aws:bedrock:ap-southeast-1:325137989598:inference-profile/apac.amazon.nova-micro-v1:0' }}
+  CUSTOM_DOMAIN_NAME: ${{ vars.CUSTOM_DOMAIN_NAME || 'budgetbot.topjob.id.vn' }}
+  CUSTOM_CERTIFICATE_ARN: ${{ vars.CUSTOM_CERTIFICATE_ARN || 'arn:aws:acm:us-east-1:325137989598:certificate/5aece9cc-fd4b-4ebc-a6a5-24ab429455de' }}
 
 jobs:
   build-and-deploy:
@@ -87,7 +89,9 @@ jobs:
               DeployApplication=true \
               LambdaCodeS3Bucket="${LAMBDA_ARTIFACT_BUCKET}" \
               LambdaCodeS3Key="${LAMBDA_CODE_S3_KEY}" \
-              BedrockModelArn="${BEDROCK_MODEL_ARN}"
+              BedrockModelArn="${BEDROCK_MODEL_ARN}" \
+              CustomDomainName="${CUSTOM_DOMAIN_NAME}" \
+              CustomCertificateArn="${CUSTOM_CERTIFICATE_ARN}"
 
       - name: Read stack outputs
         run: |
@@ -139,5 +143,6 @@ jobs:
             echo "- Region: ${AWS_REGION}"
             echo "- API endpoint: ${API_ENDPOINT}"
             echo "- Frontend URL: https://${CLOUDFRONT_DOMAIN}"
+            echo "- Custom URL: https://${CUSTOM_DOMAIN_NAME}"
             echo "- Lambda artifact: s3://${LAMBDA_ARTIFACT_BUCKET}/${LAMBDA_CODE_S3_KEY}"
           } >> "${GITHUB_STEP_SUMMARY}"

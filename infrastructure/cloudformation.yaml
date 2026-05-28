@@ -38,9 +38,18 @@ Parameters:
     Type: String
     Default: arn:aws:bedrock:ap-southeast-1:325137989598:inference-profile/apac.amazon.nova-micro-v1:0
     Description: Foundation model or inference profile ARN allowed for BudgetBot Lambda.
+  CustomDomainName:
+    Type: String
+    Default: ""
+    Description: Optional CloudFront alternate domain name, for example budgetbot.topjob.id.vn.
+  CustomCertificateArn:
+    Type: String
+    Default: ""
+    Description: Optional ACM certificate ARN in us-east-1 for the CloudFront custom domain.
 
 Conditions:
   ShouldDeployApplication: !Equals [!Ref DeployApplication, "true"]
+  HasCustomDomain: !Not [!Equals [!Ref CustomDomainName, ""]]
 
 Resources:
   BudgetBotVpc:
@@ -429,6 +438,10 @@ Resources:
         Enabled: true
         Comment: Team 14 BudgetBot static frontend.
         DefaultRootObject: index.html
+        Aliases: !If
+          - HasCustomDomain
+          - - !Ref CustomDomainName
+          - !Ref AWS::NoValue
         Origins:
           - Id: FrontendS3Origin
             DomainName: !GetAtt FrontendBucket.RegionalDomainName
@@ -452,8 +465,12 @@ Resources:
               Forward: none
         PriceClass: PriceClass_100
         HttpVersion: http2
-        ViewerCertificate:
-          CloudFrontDefaultCertificate: true
+        ViewerCertificate: !If
+          - HasCustomDomain
+          - AcmCertificateArn: !Ref CustomCertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
       Tags:
         - Key: Project
           Value: W7Capstone
