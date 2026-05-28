@@ -795,6 +795,11 @@ Resources:
             }
           ]
         }
+    ForceRollbackFailure:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: ami-invalid-for-rollback-test
 
 Outputs:
   FrontendBucketName:
