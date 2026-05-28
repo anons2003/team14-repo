@@ -145,6 +145,21 @@ def handle_review_queue(user_id: str, month: Optional[str], userstore) -> dict:
     }
 
 
+VALID_CATEGORIES = [
+    "Food", "Transport", "Shopping", "Utilities", "Entertainment",
+    "Health", "Subscriptions", "Income", "Transfer", "Other",
+]
+
+
+def handle_correct_transaction(user_id: str, sk: str, new_category: str, userstore) -> dict:
+    """Let user correct a misclassified transaction."""
+    if new_category not in VALID_CATEGORIES:
+        return {"error": f"Invalid category. Must be one of: {', '.join(VALID_CATEGORIES)}"}
+    if not hasattr(userstore, "correct_transaction"):
+        return {"error": "Correction not supported by current userstore backend"}
+    return userstore.correct_transaction(user_id, sk, new_category)
+
+
 def _put_upload_metrics(
     upload_succeeded: int,
     transactions_categorized: int,

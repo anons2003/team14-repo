@@ -738,6 +738,14 @@ Resources:
       RouteKey: GET /health
       Target: !Sub integrations/${BudgetBotIntegration}
 
+  BudgetBotRouteCorrect:
+    Type: AWS::ApiGatewayV2::Route
+    Condition: ShouldDeployApplication
+    Properties:
+      ApiId: !Ref BudgetBotApi
+      RouteKey: POST /correct
+      Target: !Sub integrations/${BudgetBotIntegration}
+
   BudgetBotStage:
     Type: AWS::ApiGatewayV2::Stage
     Condition: ShouldDeployApplication

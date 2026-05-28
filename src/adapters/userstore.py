@@ -43,6 +43,19 @@ class DynamoDBUserStore:
         resp = self.table.query(**kwargs)
         return [_decimal_to_float(item) for item in resp.get("Items", [])]
 
+    def correct_transaction(self, user_id: str, sk: str, new_category: str) -> dict:
+        """User corrects a misclassified transaction."""
+        self.table.update_item(
+            Key={"user_id": user_id, "sk": sk},
+            UpdateExpression="SET category = :cat, confidence = :conf, corrected_at = :now, ai_original_category = if_not_exists(ai_original_category, category)",
+            ExpressionAttributeValues={
+                ":cat": new_category,
+                ":conf": "human",
+                ":now": _now(),
+            },
+        )
+        return {"user_id": user_id, "sk": sk, "new_category": new_category, "corrected": True}
+
     def summary(self, user_id: str, month: str | None = None) -> dict:
         return _aggregate(self.list_transactions(user_id, month))
 
@@ -155,7 +168,7 @@ class SQLiteUserStore:
         self.conn.commit()
 
     def list_transactions(self, user_id: str, month: str | None = None) -> list:
-        sql = "SELECT txn_date, description, amount, category, confidence FROM transactions WHERE user_id = ?"
+        sql = "SELECT id, txn_date, description, amount, category, confidence FROM transactions WHERE user_id = ?"
         params: list = [user_id]
         if month:
             sql += " AND substr(txn_date, 1, 7) = ?"
@@ -163,9 +176,18 @@ class SQLiteUserStore:
         sql += " ORDER BY txn_date DESC"
         cur = self.conn.execute(sql, params)
         return [
-            {"date": r[0], "description": r[1], "amount": r[2], "category": r[3], "confidence": r[4]}
+            {"sk": str(r[0]), "date": r[1], "description": r[2], "amount": r[3], "category": r[4], "confidence": r[5]}
             for r in cur.fetchall()
         ]
+
+    def correct_transaction(self, user_id: str, sk: str, new_category: str) -> dict:
+        """Update category for a transaction (user correction)."""
+        self.conn.execute(
+            "UPDATE transactions SET category = ?, confidence = 'human' WHERE id = ? AND user_id = ?",
+            (new_category, int(sk), user_id),
+        )
+        self.conn.commit()
+        return {"user_id": user_id, "sk": sk, "new_category": new_category, "corrected": True}
 
     def summary(self, user_id: str, month: str | None = None) -> dict:
         return _aggregate(self.list_transactions(user_id, month))

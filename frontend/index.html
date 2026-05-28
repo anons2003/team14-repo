@@ -616,24 +616,55 @@ async function loadReviewQueue() {
     $('review-out').innerHTML = '<div class="empty">No low-confidence items yet.</div>';
     return;
   }
+  const cats = ['Food','Transport','Shopping','Utilities','Entertainment','Health','Subscriptions','Income','Transfer','Other'];
   const items = res.body.items;
   $('review-out').innerHTML = `
     <table>
-      <thead><tr><th>Date</th><th>Description</th><th>Suggested</th><th>Confidence</th><th style="text-align:right;">Amount</th></tr></thead>
+      <thead><tr><th>Date</th><th>Description</th><th>AI Suggested</th><th>Correct to</th><th style="text-align:right;">Amount</th><th></th></tr></thead>
       <tbody>
-        ${items.slice(0, 20).map(r => `
-          <tr>
+        ${items.slice(0, 20).map((r, i) => `
+          <tr id="review-row-${i}">
             <td>${r.date}</td>
-            <td>${(r.description || '').slice(0, 50)}</td>
+            <td>${(r.description || '').slice(0, 40)}</td>
             <td><span class="cat-pill">${r.category}</span></td>
-            <td>${r.confidence}</td>
+            <td>
+              <select id="review-cat-${i}" style="font:inherit;padding:0.3rem 0.4rem;border:1px solid var(--border);border-radius:var(--radius-sm);min-width:110px;">
+                ${cats.map(c => `<option value="${c}" ${c === r.category ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </td>
             <td class="amt ${r.amount < 0 ? 'neg' : 'pos'}">${r.amount >= 0 ? '+' : ''}${fmt(r.amount)}</td>
+            <td><button class="primary" style="min-height:34px;padding:0.3rem 0.7rem;font-size:0.8rem;" onclick="correctTransaction(${i}, '${(r.sk || '').replace(/'/g, "\\'")}')">✓ Correct</button></td>
           </tr>
         `).join('')}
       </tbody>
     </table>
     ${items.length > 20 ? `<p class="muted" style="font-size:0.78rem; margin-top:0.5rem;">Showing 20 of ${items.length}</p>` : ''}
   `;
+}
+
+async function correctTransaction(idx, sk) {
+  const sel = $('review-cat-' + idx);
+  const newCat = sel.value;
+  const btn = sel.closest('tr').querySelector('button');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  const res = await call('/correct', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({sk: sk, new_category: newCat}),
+  });
+  if (res.ok && res.body.corrected) {
+    const row = $('review-row-' + idx);
+    row.style.background = '#f0fdf4';
+    row.querySelector('.cat-pill').textContent = newCat;
+    btn.textContent = '✓ Done';
+    btn.style.background = 'var(--success)';
+    toast(`Corrected → ${newCat}`, 'success');
+  } else {
+    btn.disabled = false;
+    btn.textContent = '✓ Correct';
+    toast(res.body.error || 'Correction failed', 'error');
+  }
 }
 
 function refreshData() {

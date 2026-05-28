@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -91,6 +91,22 @@ def review_queue(
     x_user_id: Optional[str] = Header(default=None),
 ) -> dict:
     return handlers.handle_review_queue(_resolve_user_id(x_user_id), month, userstore)
+
+
+@app.post("/correct")
+async def correct_transaction(
+    request: Request,
+    x_user_id: Optional[str] = Header(default=None),
+) -> dict:
+    body = await request.json()
+    user_id = _resolve_user_id(x_user_id)
+    sk = body.get("sk", "")
+    new_category = body.get("new_category", "")
+    if not sk or not new_category:
+        raise HTTPException(status_code=400, detail="sk and new_category are required")
+    return handlers.handle_correct_transaction(
+        user_id=user_id, sk=sk, new_category=new_category, userstore=userstore,
+    )
 
 
 # ---- Static frontend ----
