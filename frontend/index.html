@@ -645,10 +645,14 @@ function renderTxnPage() {
       <thead><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right;">Amount</th></tr></thead>
       <tbody>
         ${page.map(r => `
-          <tr>
+          <tr style="background:${r.confidence === 'blocked' ? '#fef2f2' : ''};">
             <td>${r.date}</td>
             <td>${(r.description || '').slice(0, 50)}</td>
-            <td><span class="cat-pill">${r.category}</span></td>
+            <td>
+              ${r.confidence === 'blocked' 
+                ? '<span style="color:#ef4444;font-weight:700;">🚫 BLOCKED</span>' 
+                : `<span class="cat-pill">${r.category}</span>`}
+            </td>
             <td class="amt ${r.amount < 0 ? 'neg' : 'pos'}">${r.amount >= 0 ? '+' : ''}${fmt(r.amount)}</td>
           </tr>
         `).join('')}
