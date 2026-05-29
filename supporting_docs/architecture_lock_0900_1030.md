@@ -121,8 +121,8 @@ Data flow chính:
 
 Diagram artifact:
 
-- Draw.io version: `docs/budgetbot-aws-architecture.drawio`
-- UML version: `docs/architecture.puml`
+- Draw.io version: `supporting_docs/budgetbot-aws-architecture.drawio`
+- UML version: `supporting_docs/architecture.puml`
 - Final PNG for evidence: `docs/architecture.png`
 
 ## 5. Chốt Optional Capability: Full Observability

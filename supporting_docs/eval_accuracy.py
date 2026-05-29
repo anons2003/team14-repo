@@ -8,9 +8,9 @@ Runs the AI classifier on labeled test transactions and produces:
   4. List of misclassified transactions
 
 Usage:
-    python docs/eval_accuracy.py [--backend local|bedrock]
+    python supporting_docs/eval_accuracy.py [--backend local|bedrock]
 
-Output saved to: docs/accuracy_report.txt
+Output saved to: supporting_docs/accuracy_report.txt
 """
 import csv
 import sys

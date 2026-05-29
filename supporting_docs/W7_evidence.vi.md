@@ -25,7 +25,7 @@
 | Live HTTPS URL | Xong | `https://budgetbot.topjob.id.vn` trả HTTP 200 qua CloudFront |
 | GitHub repo | Xong | `https://github.com/anons2003/team14-repo` |
 | Sơ đồ kiến trúc cuối | Xong | `docs/architecture.png` |
-| Evidence Pack | Xong | `docs/W7_evidence.md` và `docs/W7_evidence.vi.md` |
+| Evidence Pack | Xong | `docs/W7_evidence.md`; bản tiếng Việt lưu ở `supporting_docs/W7_evidence.vi.md` |
 | Video demo | Xong | [Google Drive demo video](https://drive.google.com/file/d/1oH1wG4hl6nWI2Uhk2RK6m-2kBWuROAQh/view) |
 | Slides PDF | TODO | Thêm `docs/slides.pdf` |
 | Teardown confirmation | Đã lên kế hoạch | `docs/teardown_confirmation.md` sau hạn Sun 1/6 EOD |
@@ -383,8 +383,8 @@ DynamoDB không có SQL `GROUP BY`, nên app aggregate summary trong application
 
 **BẰNG CHỨNG:**
 
-- `docs/accuracy_report.txt`
-- `docs/failure_cases.md`
+- `supporting_docs/accuracy_report.txt`
+- `supporting_docs/failure_cases.md`
 - `src/adapters/ai.py` JSON-only prompts
 - `src/handlers.py` review queue và custom metrics
 - CloudWatch metric `LowConfidenceTransactions`

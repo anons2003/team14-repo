@@ -384,8 +384,8 @@ DynamoDB does not provide SQL-style `GROUP BY` queries, so the app aggregates ca
 
 **EVIDENCE:**
 
-- `docs/accuracy_report.txt`
-- `docs/failure_cases.md`
+- `supporting_docs/accuracy_report.txt`
+- `supporting_docs/failure_cases.md`
 - `src/adapters/ai.py` JSON-only prompts
 - `src/handlers.py` review queue and custom metrics
 - CloudWatch metric `LowConfidenceTransactions`
