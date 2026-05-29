@@ -57,7 +57,7 @@ Target users are students, young professionals, and small business owners who do
 
 #### Upload Success
 
-![Upload success](evidence_screenshots/demo/02_upload_success.png)
+![Upload success](./evidence_screenshots/demo/02_upload_success.png)
 
 ## 3. Architecture
 
@@ -108,7 +108,13 @@ Team 14 selected **Optional #8 — Full Observability**.
 
 #### CI/CD Pipeline Evidence
 
-![GitHub Actions success](evidence_screenshots/deployment/03_github_actions_success.png)
+![GitHub Actions success](./evidence_screenshots/deployment/03_github_actions_success.png)
+
+#### Deployment And Demo Screenshots
+
+![GitHub Actions success](./evidence_screenshots/deployment/03_github_actions_success.png)
+
+![Upload success](./evidence_screenshots/demo/02_upload_success.png)
 
 ### Key Service Decisions
 
