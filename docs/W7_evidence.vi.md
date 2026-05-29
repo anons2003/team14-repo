@@ -26,7 +26,7 @@
 | GitHub repo | Xong | `https://github.com/anons2003/team14-repo` |
 | Sơ đồ kiến trúc cuối | Xong | `docs/architecture.png` |
 | Evidence Pack | Xong | `docs/W7_evidence.md` và `docs/W7_evidence.vi.md` |
-| Video demo | TODO | Thêm `docs/demo.mp4` hoặc link YouTube unlisted |
+| Video demo | Xong | [Google Drive demo video](https://drive.google.com/file/d/1oH1wG4hl6nWI2Uhk2RK6m-2kBWuROAQh/view) |
 | Slides PDF | TODO | Thêm `docs/slides.pdf` |
 | Teardown confirmation | Đã lên kế hoạch | `docs/teardown_confirmation.md` sau hạn Sun 1/6 EOD |
 
@@ -51,6 +51,7 @@ Người dùng mục tiêu là sinh viên, người mới đi làm, freelancer v
 
 | Screenshot | File | Ghi chú |
 |---|---|---|
+| Video demo | [Google Drive demo video](https://drive.google.com/file/d/1oH1wG4hl6nWI2Uhk2RK6m-2kBWuROAQh/view) | Video backup demo 3 phút |
 | Live URL home | `docs/evidence_screenshots/demo/01_live_url_home.png` | TODO: gắn ảnh public HTTPS landing page |
 | Upload success | `docs/evidence_screenshots/demo/02_upload_success.png` | Chứng minh CSV upload và transaction đã classify |
 

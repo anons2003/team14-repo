@@ -26,7 +26,7 @@
 | GitHub repo | Done | `https://github.com/anons2003/team14-repo` |
 | Final architecture diagram | Done | `docs/architecture.png` |
 | Evidence Pack | Done | `docs/W7_evidence.md` |
-| Demo video | TODO | Add `docs/demo.mp4` or unlisted YouTube link |
+| Demo video | Done | [Google Drive demo video](https://drive.google.com/file/d/1oH1wG4hl6nWI2Uhk2RK6m-2kBWuROAQh/view) |
 | Slides PDF | TODO | Add `docs/slides.pdf` |
 | Teardown confirmation | Planned | `docs/teardown_confirmation.md` after Sun 1/6 EOD |
 
@@ -51,6 +51,7 @@ Target users are students, young professionals, and small business owners who do
 
 | Screenshot | File | Notes |
 |---|---|---|
+| Demo video | [Google Drive demo video](https://drive.google.com/file/d/1oH1wG4hl6nWI2Uhk2RK6m-2kBWuROAQh/view) | Backup 3-minute demo video |
 | Live URL home | `docs/evidence_screenshots/demo/01_live_url_home.png` | TODO: attach public HTTPS landing page screenshot |
 | Upload success | `docs/evidence_screenshots/demo/02_upload_success.png` | Shows CSV upload and classified transaction output |
 
