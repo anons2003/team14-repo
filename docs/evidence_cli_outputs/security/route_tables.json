@@ -1,0 +1,183 @@
+{
+    "RouteTables": [
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0580a87cee9654754",
+                    "RouteTableId": "rtb-00ba4e24ff7b8046c",
+                    "SubnetId": "subnet-0f404f193e6534efd",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                },
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-04f4348af55932217",
+                    "RouteTableId": "rtb-00ba4e24ff7b8046c",
+                    "SubnetId": "subnet-0acedaa53e5480c96",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-00ba4e24ff7b8046c",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                },
+                {
+                    "DestinationPrefixListId": "pl-67a5400e",
+                    "GatewayId": "vpce-021f8d076fea679f5",
+                    "Origin": "CreateRoute",
+                    "State": "active"
+                },
+                {
+                    "DestinationPrefixListId": "pl-6fa54006",
+                    "GatewayId": "vpce-0fa20050fb908c907",
+                    "Origin": "CreateRoute",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "aws:cloudformation:logical-id",
+                    "Value": "PrivateRouteTable"
+                },
+                {
+                    "Key": "aws:cloudformation:stack-id",
+                    "Value": "arn:aws:cloudformation:ap-southeast-1:325137989598:stack/team14-budgetbot-iac/59a1bcc0-599f-11f1-ae54-0269b165b2ed"
+                },
+                {
+                    "Key": "Environment",
+                    "Value": "hackathon"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "W7Capstone"
+                },
+                {
+                    "Key": "aws:cloudformation:stack-name",
+                    "Value": "team14-budgetbot-iac"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "team14-budgetbot-cfn-private-rt"
+                },
+                {
+                    "Key": "Owner",
+                    "Value": "Team14"
+                },
+                {
+                    "Key": "Team",
+                    "Value": "G14"
+                }
+            ],
+            "VpcId": "vpc-044f26a2a760491ba",
+            "OwnerId": "325137989598"
+        },
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0f46e7ea9f79b9ac4",
+                    "RouteTableId": "rtb-061fd45cf802416e5",
+                    "SubnetId": "subnet-0226987766815f22e",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                },
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-017347efd718c1701",
+                    "RouteTableId": "rtb-061fd45cf802416e5",
+                    "SubnetId": "subnet-0175e67c629798184",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-061fd45cf802416e5",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                },
+                {
+                    "DestinationCidrBlock": "0.0.0.0/0",
+                    "GatewayId": "igw-0111ff796abdbecb2",
+                    "Origin": "CreateRoute",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "aws:cloudformation:logical-id",
+                    "Value": "PublicRouteTable"
+                },
+                {
+                    "Key": "aws:cloudformation:stack-id",
+                    "Value": "arn:aws:cloudformation:ap-southeast-1:325137989598:stack/team14-budgetbot-iac/59a1bcc0-599f-11f1-ae54-0269b165b2ed"
+                },
+                {
+                    "Key": "Environment",
+                    "Value": "hackathon"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "W7Capstone"
+                },
+                {
+                    "Key": "aws:cloudformation:stack-name",
+                    "Value": "team14-budgetbot-iac"
+                },
+                {
+                    "Key": "Team",
+                    "Value": "G14"
+                },
+                {
+                    "Key": "Owner",
+                    "Value": "Team14"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "team14-budgetbot-cfn-public-rt"
+                }
+            ],
+            "VpcId": "vpc-044f26a2a760491ba",
+            "OwnerId": "325137989598"
+        },
+        {
+            "Associations": [
+                {
+                    "Main": true,
+                    "RouteTableAssociationId": "rtbassoc-07ab1e92ecdc4d954",
+                    "RouteTableId": "rtb-0c695c2a890a5438f",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-0c695c2a890a5438f",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.0.0.0/16",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                }
+            ],
+            "Tags": [],
+            "VpcId": "vpc-044f26a2a760491ba",
+            "OwnerId": "325137989598"
+        }
+    ]
+}

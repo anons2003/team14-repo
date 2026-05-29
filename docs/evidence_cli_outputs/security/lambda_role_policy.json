@@ -1,0 +1,92 @@
+{
+    "RoleName": "team14-budgetbot-cfn-lambda-role",
+    "PolicyName": "BudgetBotLambdaLeastPrivilegePolicy",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject"
+                ],
+                "Resource": "arn:aws:s3:::team14-budgetbot-cfn-raw-325137989598-ap-southeast-1/*",
+                "Effect": "Allow",
+                "Sid": "RawStatementBucketObjectAccess"
+            },
+            {
+                "Action": [
+                    "s3:ListBucket"
+                ],
+                "Resource": "arn:aws:s3:::team14-budgetbot-cfn-raw-325137989598-ap-southeast-1",
+                "Effect": "Allow",
+                "Sid": "RawStatementBucketListAccess"
+            },
+            {
+                "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:Query",
+                    "dynamodb:UpdateItem"
+                ],
+                "Resource": "arn:aws:dynamodb:ap-southeast-1:325137989598:table/team14-budgetbot-cfn-transactions",
+                "Effect": "Allow",
+                "Sid": "BudgetBotTransactionsAccess"
+            },
+            {
+                "Action": [
+                    "bedrock:InvokeModel"
+                ],
+                "Resource": [
+                    "arn:aws:bedrock:ap-southeast-1:325137989598:inference-profile/apac.amazon.nova-micro-v1:0",
+                    "arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0",
+                    "arn:aws:bedrock:ap-southeast-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+                ],
+                "Effect": "Allow",
+                "Sid": "InvokeSelectedBedrockModel"
+            },
+            {
+                "Action": [
+                    "logs:CreateLogGroup"
+                ],
+                "Resource": "arn:aws:logs:ap-southeast-1:325137989598:*",
+                "Effect": "Allow",
+                "Sid": "WriteLambdaLogs"
+            },
+            {
+                "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                ],
+                "Resource": "arn:aws:logs:ap-southeast-1:325137989598:log-group:/aws/lambda/team14-budgetbot-cfn*:*",
+                "Effect": "Allow",
+                "Sid": "WriteLambdaLogStreams"
+            },
+            {
+                "Condition": {
+                    "StringEquals": {
+                        "cloudwatch:namespace": "BudgetBot/Team14"
+                    }
+                },
+                "Action": [
+                    "cloudwatch:PutMetricData"
+                ],
+                "Resource": "*",
+                "Effect": "Allow",
+                "Sid": "PublishBudgetBotCustomMetrics"
+            },
+            {
+                "Action": [
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DescribeSubnets",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:AssignPrivateIpAddresses",
+                    "ec2:UnassignPrivateIpAddresses"
+                ],
+                "Resource": "*",
+                "Effect": "Allow",
+                "Sid": "LambdaVpcNetworkInterfaceAccess"
+            }
+        ]
+    }
+}

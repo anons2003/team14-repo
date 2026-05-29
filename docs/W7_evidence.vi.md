@@ -47,6 +47,17 @@ Người dùng mục tiêu là sinh viên, người mới đi làm, freelancer v
 7. UI refresh summary, transaction list, AI performance, failure cases và review queue.
 8. Sau khi refresh browser, dữ liệu vẫn còn vì state được lưu trong DynamoDB.
 
+### Ảnh Demo Evidence Đã Gắn
+
+| Screenshot | File | Ghi chú |
+|---|---|---|
+| Live URL home | `docs/evidence_screenshots/demo/01_live_url_home.png` | TODO: gắn ảnh public HTTPS landing page |
+| Upload success | `docs/evidence_screenshots/demo/02_upload_success.png` | Chứng minh CSV upload và transaction đã classify |
+
+#### Upload Success
+
+![Upload success](evidence_screenshots/demo/02_upload_success.png)
+
 ## 3. Kiến Trúc
 
 ![Team 14 BudgetBot AWS Architecture](architecture.png)
@@ -93,6 +104,10 @@ Team 14 chọn **Optional #8 — Full Observability**.
 | E. IaC full coverage | `infrastructure/cloudformation.yaml` tạo VPC, endpoints, S3, CloudFront, DynamoDB, IAM, Lambda, API Gateway, CloudWatch dashboard/alarm/query |
 | H. Cost under $30 | Chờ Cost Explorer screenshot cuối và teardown sạch |
 
+#### CI/CD Pipeline Evidence
+
+![GitHub Actions success](evidence_screenshots/deployment/03_github_actions_success.png)
+
 ### Quyết Định Service Chính
 
 | Quyết định | Lựa chọn | Phương án cân nhắc | Lý do |
@@ -118,18 +133,34 @@ Team 14 chọn **Optional #8 — Full Observability**.
 | Cost Anomaly Detection | Xong | Monitor `Default-Services-Monitor`; gắn `docs/evidence_screenshots/cost/03_cost_anomaly_detection.png` |
 | Tagging convention | Xong | `Project=W7Capstone`, `Team=G14`, `Owner=Team14`, `Environment=hackathon` trong CloudFormation resources |
 | Bedrock access | Xong | Lambda health trả `ai=bedrock`; InvokeModel chạy qua app đã deploy |
-| Cost Explorer screenshots | TODO | Day 1 EOD, Day 2 EOD, Friday pre-demo |
+| Cost Explorer screenshots | Một phần | Đã gắn Day 1 EOD; Day 2 EOD và Friday pre-demo còn pending |
 
-### Screenshot Cần Gắn Vào Evidence
+### Ảnh Cost Evidence Đã Gắn
 
-| Screenshot | File cần thêm | Ghi chú |
+| Screenshot | File | Ghi chú |
 |---|---|---|
-| Day 1 EOD Cost Explorer | `docs/evidence_screenshots/cost/04_cost_explorer_day1_eod.png` | Group by Service, filter theo Team/G14 nếu cost allocation tag đã active |
-| Day 2 EOD Cost Explorer | `docs/evidence_screenshots/cost/05_cost_explorer_day2_eod.png` | Có tổng chi phí |
-| Friday pre-demo Cost Explorer | `docs/evidence_screenshots/cost/06_cost_explorer_friday_predemo.png` | Số chính thức trước demo |
 | Budget alert | `docs/evidence_screenshots/cost/01_budget_alert.png` | Show budget $100 / threshold $80 |
 | SNS confirmation | `docs/evidence_screenshots/cost/02_sns_confirmed.png` | Show email subscription confirmed |
 | Cost Anomaly Detection | `docs/evidence_screenshots/cost/03_cost_anomaly_detection.png` | Show monitor/subscription active |
+| Day 1 EOD Cost Explorer | `docs/evidence_screenshots/cost/04_cost_explorer_day1_eod.png` | Chụp trạng thái dữ liệu Cost Explorer ở Day 1 EOD |
+| Day 2 EOD Cost Explorer | `docs/evidence_screenshots/cost/05_cost_explorer_day2_eod.png` | TODO: thêm tổng chi phí sau khi chụp |
+| Friday pre-demo Cost Explorer | `docs/evidence_screenshots/cost/06_cost_explorer_friday_predemo.png` | TODO: số chính thức trước demo sau khi chụp |
+
+#### Budget Alert
+
+![Budget alert](evidence_screenshots/cost/01_budget_alert.png)
+
+#### SNS Confirmation
+
+![SNS confirmation](evidence_screenshots/cost/02_sns_confirmed.png)
+
+#### Cost Anomaly Detection
+
+![Cost Anomaly Detection](evidence_screenshots/cost/03_cost_anomaly_detection.png)
+
+#### Day 1 EOD Cost Explorer
+
+![Day 1 EOD Cost Explorer](evidence_screenshots/cost/04_cost_explorer_day1_eod.png)
 
 ### Cost Drivers Dự Kiến
 
@@ -159,6 +190,49 @@ Khi soạn evidence, AWS Cost Explorer trả `DataUnavailableException`, thườ
 | Network isolation | Lambda trong private subnets, không public IP, private route table không có internet default route | private subnets `subnet-0acedaa53e5480c96`, `subnet-0f404f193e6534efd`; không NAT Gateway |
 | Least privilege | Lambda role chỉ có action cần thiết | `BudgetBotLambdaLeastPrivilegePolicy` |
 | Cost safety | Budget + SNS + Cost Anomaly Detection | Budget `W7-Team14-HardCap-100USD`; SNS confirmed |
+
+### Ảnh Security Evidence Đã Gắn
+
+| Screenshot | File |
+|---|---|
+| Root MFA enabled | `docs/evidence_screenshots/security/01_root_mfa_enabled.png` |
+| Lambda role least-privilege policy | `docs/evidence_screenshots/security/02_lambda_role_policy.png` |
+| Frontend bucket private / Block Public Access | `docs/evidence_screenshots/security/03_frontend_bucket_private.png` |
+| Raw bucket default encryption | `docs/evidence_screenshots/security/04_raw_bucket_encryption.png` |
+| CloudFront HTTPS + ACM certificate | `docs/evidence_screenshots/security/05_cloudfront_https_acm.png05_cloudfront_https_acm.png` |
+| DynamoDB encryption + PITR | `docs/evidence_screenshots/security/06_dynamodb_encryption_pitr.png` |
+| VPC private subnets/endpoints, phần 1 | `docs/evidence_screenshots/security/07_vpc_private_subnets_endpoints1.png` |
+| VPC private subnets/endpoints, phần 2 | `docs/evidence_screenshots/security/07_vpc_private_subnets_endpoints2.png` |
+
+#### Root MFA Enabled
+
+![Root MFA enabled](evidence_screenshots/security/01_root_mfa_enabled.png)
+
+#### Lambda Role Policy
+
+![Lambda role policy](evidence_screenshots/security/02_lambda_role_policy.png)
+
+#### Frontend Bucket Private
+
+![Frontend bucket private](evidence_screenshots/security/03_frontend_bucket_private.png)
+
+#### Raw Bucket Encryption
+
+![Raw bucket encryption](evidence_screenshots/security/04_raw_bucket_encryption.png)
+
+#### CloudFront HTTPS Và ACM
+
+![CloudFront HTTPS ACM](evidence_screenshots/security/05_cloudfront_https_acm.png05_cloudfront_https_acm.png)
+
+#### DynamoDB Encryption Và PITR
+
+![DynamoDB encryption PITR](evidence_screenshots/security/06_dynamodb_encryption_pitr.png)
+
+#### VPC Private Subnets Và Endpoints
+
+![VPC private subnets endpoints part 1](evidence_screenshots/security/07_vpc_private_subnets_endpoints1.png)
+
+![VPC private subnets endpoints part 2](evidence_screenshots/security/07_vpc_private_subnets_endpoints2.png)
 
 ### IAM Scope Của Lambda
 
@@ -222,6 +296,36 @@ Bằng chứng:
 - Query definition name: `team14-budgetbot-cfn/upload-classification-path`
 - Query definition id: `81030937-11c7-4d22-900e-b13f51a6c9d8`
 - Log group: `/aws/lambda/team14-budgetbot-cfn-backend`
+
+### Ảnh Monitoring Evidence Đã Gắn
+
+| Screenshot | File |
+|---|---|
+| CloudWatch dashboard | `docs/evidence_screenshots/monitoring/01_cloudwatch_dashboard.png` |
+| Custom metrics namespace | `docs/evidence_screenshots/monitoring/02_custom_metrics.png` |
+| CloudWatch alarm OK | `docs/evidence_screenshots/monitoring/03_alarm_ok.png` |
+| Logs Insights saved query | `docs/evidence_screenshots/monitoring/04_logs_insights_query.png` |
+| Lambda logs có Bedrock classification result | `docs/evidence_screenshots/monitoring/05_lambda_logs_bedrock_result.png` |
+
+#### CloudWatch Dashboard
+
+![CloudWatch dashboard](evidence_screenshots/monitoring/01_cloudwatch_dashboard.png)
+
+#### Custom Metrics
+
+![Custom metrics](evidence_screenshots/monitoring/02_custom_metrics.png)
+
+#### CloudWatch Alarm
+
+![CloudWatch alarm OK](evidence_screenshots/monitoring/03_alarm_ok.png)
+
+#### Logs Insights Query
+
+![Logs Insights query](evidence_screenshots/monitoring/04_logs_insights_query.png)
+
+#### Lambda Logs Bedrock Result
+
+![Lambda logs Bedrock result](evidence_screenshots/monitoring/05_lambda_logs_bedrock_result.png)
 
 ## 6.5 Đo Lường Và Quyết Định
 

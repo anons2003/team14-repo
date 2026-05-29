@@ -47,6 +47,17 @@ Target users are students, young professionals, and small business owners who do
 7. UI refreshes summary, transaction list, AI performance, failure cases, and review queue.
 8. Data remains visible after browser refresh because DynamoDB stores the state.
 
+### Attached Demo Evidence
+
+| Screenshot | File | Notes |
+|---|---|---|
+| Live URL home | `docs/evidence_screenshots/demo/01_live_url_home.png` | TODO: attach public HTTPS landing page screenshot |
+| Upload success | `docs/evidence_screenshots/demo/02_upload_success.png` | Shows CSV upload and classified transaction output |
+
+#### Upload Success
+
+![Upload success](evidence_screenshots/demo/02_upload_success.png)
+
 ## 3. Architecture
 
 ![Team 14 BudgetBot AWS Architecture](architecture.png)
@@ -94,6 +105,10 @@ Team 14 selected **Optional #8 — Full Observability**.
 | F. AI Safety Mechanism | `src/adapters/safety.py` implements prompt injection, SQL injection, and template injection guards. UI Section 7 provides a live testing endpoint. Blocked inputs are persisted and tracked in `GET /stats`. |
 | H. Cost under $30 | Pending final Cost Explorer screenshot and clean teardown confirmation |
 
+#### CI/CD Pipeline Evidence
+
+![GitHub Actions success](evidence_screenshots/deployment/03_github_actions_success.png)
+
 ### Key Service Decisions
 
 | Decision | Choice | Alternative Considered | Rationale |
@@ -119,18 +134,34 @@ Team 14 selected **Optional #8 — Full Observability**.
 | Cost Anomaly Detection | Done | Monitor `Default-Services-Monitor`; attach `docs/evidence_screenshots/cost/03_cost_anomaly_detection.png` |
 | Tagging convention | Done | `Project=W7Capstone`, `Team=G14`, `Owner=Team14`, `Environment=hackathon` in CloudFormation resources |
 | Bedrock access | Done | Lambda health shows `ai=bedrock`; InvokeModel path works through deployed app |
-| Cost Explorer screenshots | TODO | Day 1 EOD, Day 2 EOD, Friday pre-demo |
+| Cost Explorer screenshots | Partial | Day 1 EOD attached; Day 2 EOD and Friday pre-demo still pending |
 
-### Screenshots To Attach
+### Attached Cost Evidence
 
-| Screenshot | File To Add | Notes |
+| Screenshot | File | Notes |
 |---|---|---|
-| Day 1 EOD Cost Explorer | `docs/evidence_screenshots/cost/04_cost_explorer_day1_eod.png` | Group by Service, filter by Team/G14 if tag activated |
-| Day 2 EOD Cost Explorer | `docs/evidence_screenshots/cost/05_cost_explorer_day2_eod.png` | Include total spend |
-| Friday pre-demo Cost Explorer | `docs/evidence_screenshots/cost/06_cost_explorer_friday_predemo.png` | Official total spend |
 | Budget alert | `docs/evidence_screenshots/cost/01_budget_alert.png` | Show $100 budget / $80 notification |
 | SNS confirmation | `docs/evidence_screenshots/cost/02_sns_confirmed.png` | Show confirmed email subscription |
 | Cost Anomaly Detection | `docs/evidence_screenshots/cost/03_cost_anomaly_detection.png` | Show active monitor/subscription |
+| Day 1 EOD Cost Explorer | `docs/evidence_screenshots/cost/04_cost_explorer_day1_eod.png` | Captures Cost Explorer data availability status at Day 1 EOD |
+| Day 2 EOD Cost Explorer | `docs/evidence_screenshots/cost/05_cost_explorer_day2_eod.png` | TODO: include total spend once captured |
+| Friday pre-demo Cost Explorer | `docs/evidence_screenshots/cost/06_cost_explorer_friday_predemo.png` | TODO: official total spend once captured |
+
+#### Budget Alert
+
+![Budget alert](evidence_screenshots/cost/01_budget_alert.png)
+
+#### SNS Confirmation
+
+![SNS confirmation](evidence_screenshots/cost/02_sns_confirmed.png)
+
+#### Cost Anomaly Detection
+
+![Cost Anomaly Detection](evidence_screenshots/cost/03_cost_anomaly_detection.png)
+
+#### Day 1 EOD Cost Explorer
+
+![Day 1 EOD Cost Explorer](evidence_screenshots/cost/04_cost_explorer_day1_eod.png)
 
 ### Expected Cost Drivers
 
@@ -160,6 +191,49 @@ AWS Cost Explorer returned `DataUnavailableException` during evidence drafting, 
 | Network isolation | Lambda in private subnets, no public IP, private route table has no internet default route | private subnets `subnet-0acedaa53e5480c96`, `subnet-0f404f193e6534efd`; no NAT Gateway |
 | Least privilege | Lambda role grants only required service actions | `BudgetBotLambdaLeastPrivilegePolicy` |
 | Cost safety | Budget + SNS + Cost Anomaly Detection | Budget `W7-Team14-HardCap-100USD`; SNS confirmed |
+
+### Attached Security Evidence
+
+| Screenshot | File |
+|---|---|
+| Root MFA enabled | `docs/evidence_screenshots/security/01_root_mfa_enabled.png` |
+| Lambda role least-privilege policy | `docs/evidence_screenshots/security/02_lambda_role_policy.png` |
+| Frontend bucket private / Block Public Access | `docs/evidence_screenshots/security/03_frontend_bucket_private.png` |
+| Raw bucket default encryption | `docs/evidence_screenshots/security/04_raw_bucket_encryption.png` |
+| CloudFront HTTPS + ACM certificate | `docs/evidence_screenshots/security/05_cloudfront_https_acm.png05_cloudfront_https_acm.png` |
+| DynamoDB encryption + PITR | `docs/evidence_screenshots/security/06_dynamodb_encryption_pitr.png` |
+| VPC private subnets/endpoints, part 1 | `docs/evidence_screenshots/security/07_vpc_private_subnets_endpoints1.png` |
+| VPC private subnets/endpoints, part 2 | `docs/evidence_screenshots/security/07_vpc_private_subnets_endpoints2.png` |
+
+#### Root MFA Enabled
+
+![Root MFA enabled](evidence_screenshots/security/01_root_mfa_enabled.png)
+
+#### Lambda Role Policy
+
+![Lambda role policy](evidence_screenshots/security/02_lambda_role_policy.png)
+
+#### Frontend Bucket Private
+
+![Frontend bucket private](evidence_screenshots/security/03_frontend_bucket_private.png)
+
+#### Raw Bucket Encryption
+
+![Raw bucket encryption](evidence_screenshots/security/04_raw_bucket_encryption.png)
+
+#### CloudFront HTTPS And ACM
+
+![CloudFront HTTPS ACM](evidence_screenshots/security/05_cloudfront_https_acm.png05_cloudfront_https_acm.png)
+
+#### DynamoDB Encryption And PITR
+
+![DynamoDB encryption PITR](evidence_screenshots/security/06_dynamodb_encryption_pitr.png)
+
+#### VPC Private Subnets And Endpoints
+
+![VPC private subnets endpoints part 1](evidence_screenshots/security/07_vpc_private_subnets_endpoints1.png)
+
+![VPC private subnets endpoints part 2](evidence_screenshots/security/07_vpc_private_subnets_endpoints2.png)
 
 ### Lambda IAM Scope
 
@@ -223,6 +297,36 @@ Evidence:
 - Query definition name: `team14-budgetbot-cfn/upload-classification-path`
 - Query definition id: `81030937-11c7-4d22-900e-b13f51a6c9d8`
 - Log group: `/aws/lambda/team14-budgetbot-cfn-backend`
+
+### Attached Monitoring Evidence
+
+| Screenshot | File |
+|---|---|
+| CloudWatch dashboard | `docs/evidence_screenshots/monitoring/01_cloudwatch_dashboard.png` |
+| Custom metrics namespace | `docs/evidence_screenshots/monitoring/02_custom_metrics.png` |
+| CloudWatch alarm OK | `docs/evidence_screenshots/monitoring/03_alarm_ok.png` |
+| Logs Insights saved query | `docs/evidence_screenshots/monitoring/04_logs_insights_query.png` |
+| Lambda logs with Bedrock classification result | `docs/evidence_screenshots/monitoring/05_lambda_logs_bedrock_result.png` |
+
+#### CloudWatch Dashboard
+
+![CloudWatch dashboard](evidence_screenshots/monitoring/01_cloudwatch_dashboard.png)
+
+#### Custom Metrics
+
+![Custom metrics](evidence_screenshots/monitoring/02_custom_metrics.png)
+
+#### CloudWatch Alarm
+
+![CloudWatch alarm OK](evidence_screenshots/monitoring/03_alarm_ok.png)
+
+#### Logs Insights Query
+
+![Logs Insights query](evidence_screenshots/monitoring/04_logs_insights_query.png)
+
+#### Lambda Logs Bedrock Result
+
+![Lambda logs Bedrock result](evidence_screenshots/monitoring/05_lambda_logs_bedrock_result.png)
 
 ## 6.5 Measurement & Decisions
 
