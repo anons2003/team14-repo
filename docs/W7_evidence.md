@@ -27,7 +27,7 @@
 | Final architecture diagram | Done | `docs/architecture.png` |
 | Evidence Pack | Done | `docs/W7_evidence.md` |
 | Demo video | Done | [Google Drive demo video](https://drive.google.com/file/d/1oH1wG4hl6nWI2Uhk2RK6m-2kBWuROAQh/view) |
-| Slides PDF | TODO | Add `docs/slides.pdf` |
+| Slides PDF | Done | `docs/slides.pdf` |
 | Teardown confirmation | Planned | `docs/teardown_confirmation.md` after Sun 1/6 EOD |
 
 ## 2. Pitch And Vision
